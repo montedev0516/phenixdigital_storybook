@@ -24,7 +24,7 @@ defmodule PhoenixStorybookTest do
       assert FlatListStorybook.content_tree() == [
                %FolderEntry{
                  name: "Storybook",
-                 icon: {:fa, "book-open", :light, "lsb-mr-1"},
+                 icon: {:fa, "book-open", :light, "psb-mr-1"},
                  path: "",
                  entries: [
                    %StoryEntry{
@@ -42,7 +42,7 @@ defmodule PhoenixStorybookTest do
 
     test "with a tree hierarchy of contents it should return a hierarchy of components, correctly sorted" do
       [%FolderEntry{entries: entries}] = TreeStorybook.content_tree()
-      assert Enum.count(entries) == 10
+      assert Enum.count(entries) == 11
 
       assert %StoryEntry{name: "A Page", path: "/a_page", icon: {:fa, "page"}} =
                Enum.at(entries, 0)
@@ -70,14 +70,14 @@ defmodule PhoenixStorybookTest do
                path: "/event",
                name: "Event",
                entries: [%StoryEntry{}, %StoryEntry{}]
-             } = Enum.at(entries, 6)
+             } = Enum.at(entries, 7)
     end
 
     test "with an empty folder it should return no stories" do
       assert EmptyFilesStorybook.content_tree() == [
                %FolderEntry{
                  entries: [],
-                 icon: {:fa, "book-open", :light, "lsb-mr-1"},
+                 icon: {:fa, "book-open", :light, "psb-mr-1"},
                  name: "Storybook",
                  path: ""
                }

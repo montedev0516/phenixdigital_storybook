@@ -58,6 +58,7 @@ defmodule PhoenixStorybook.Stories.StoryValidator do
     validate_component_imports!(file_path, story)
     validate_component_container!(file_path, story)
     validate_component_template!(file_path, story)
+    validate_component_layout!(file_path, story)
     validate_attribute_list_type!(file_path, attributes)
     validate_attribute_ids!(file_path, attributes)
     validate_attribute_types!(file_path, attributes)
@@ -144,17 +145,17 @@ defmodule PhoenixStorybook.Stories.StoryValidator do
 
   defp validate_component_aliases!(file_path, story) do
     msg = "story aliases must be a list of atoms"
-    validate_type!(file_path, story.aliases, :list, msg)
+    validate_type!(file_path, story.aliases(), :list, msg)
 
-    for alias_item <- story.aliases || [],
+    for alias_item <- story.aliases() || [],
         do: validate_type!(file_path, alias_item, :atom, msg)
   end
 
   defp validate_component_imports!(file_path, story) do
     msg = "story imports must be a list of {atom, [{atom, integer}]}"
-    validate_type!(file_path, story.aliases, :list, msg)
+    validate_type!(file_path, story.aliases(), :list, msg)
 
-    for import_item <- story.imports || [] do
+    for import_item <- story.imports() || [] do
       validate_type!(file_path, import_item, {:tuple, 2}, msg)
       {mod, functions} = import_item
       validate_type!(file_path, mod, :atom, msg)
@@ -171,14 +172,30 @@ defmodule PhoenixStorybook.Stories.StoryValidator do
 
   defp validate_component_container!(file_path, story) do
     case story.container() do
-      c when c in ~w(nil div iframe)a -> :ok
-      {:div, options} when is_list(options) -> :ok
-      _ -> compile_error!(file_path, "story container must be :div, {:div, opts} or :iframe")
+      c when c in ~w(nil div iframe)a ->
+        :ok
+
+      {c, options} when c in ~w(div iframe)a and is_list(options) ->
+        :ok
+
+      _ ->
+        compile_error!(
+          file_path,
+          "story container must be :div, {:div, opts}, :iframe or {:iframe, opts}"
+        )
     end
   end
 
   defp validate_component_template!(file_path, story) do
-    validate_type!(file_path, story.template, :string, "story template must be a binary")
+    validate_type!(file_path, story.template(), :string, "story template must be a binary")
+  end
+
+  defp validate_component_layout!(file_path, story) do
+    case story.layout() do
+      l when l in ~w(one_column two_columns)a -> :ok
+      {:div, options} when is_list(options) -> :ok
+      _ -> compile_error!(file_path, "story layout must be :one_column or :two_columns")
+    end
   end
 
   defp validate_attribute_list_type!(file_path, attributes) do

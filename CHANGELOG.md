@@ -1,21 +1,51 @@
 # CHANGELOG
 
-⭐ Want to help with the Phoenix Storybook project? ⭐
+> [!IMPORTANT]
+>
+> **⭐ Want to help with the Phoenix Storybook project? ⭐**
+>
+> - I would greatly appreciate your [code contributions](https://github.com/phenixdigital/phoenix_storybook/CONTRIBUTING.md).
+>
+> - You can also [sponsor me](https://github.com/sponsors/cblavier), as it would enable me to dedicate my free time to fixing bugs and > developing new features 🤗
 
-I would greatly appreciate your [code contributions](https://github.com/phenixdigital/phoenix_storybook/CONTRIBUTING.md).
+## v0.6.4 (2024-09-03)
 
-You can also [sponsor me](https://github.com/sponsors/cblavier), as it would enable me to dedicate my free time to fixing bugs and developing new features 🤗
+- **improvement**: [:compilation_debug config option](https://github.com/phenixdigital/phoenix_storybook/pull/496) was added in `storybook.ex` to show/hide story compilation logs
+- **improvement**: fixed Elixir 1.7 related warnings
 
-## v0.5.8 (not released)
+## v0.6.3 (2024-06-24)
 
+- **improvement**: [fixed another bunch of Elixir 1.17 related warnings](https://github.com/phenixdigital/phoenix_storybook/pull/461)
+
+## v0.6.2 (2024-06-17)
+
+- **improvement**: [fixed Elixir 1.17 related warnings](https://github.com/phenixdigital/phoenix_storybook/pull/454)
+- **bugfix**: [fixed nofile_error_due_to_missing_env issue](https://github.com/phenixdigital/phoenix_storybook/pull/449)
+
+## v0.6.1 (2024-02-13)
+
+- **bugfix**: [added a missing step in generator](https://github.com/phenixdigital/phoenix_storybook/issues/419)
+
+## v0.6.0 (2024-01-05)
+
+- **change (breaking!)**: all css `lsb-` prefixes have been renamed to `psb-` (matching `live storybook` renaming to `phoenix storybook`).
+- **change (breaking!)**: [`assign` and `toggle` events have been prefixed with `psb-`](https://github.com/phenixdigital/phoenix_storybook/issues/395) (cf. `components.md` guide)
+- **feature**: [render any stories with the new :one_column layout](https://github.com/phenixdigital/phoenix_storybook/issues/296)
+- **improvement**: fixed compatibility with phoenix_html_helpers
+- **improvement**: [function components use iframe srcdoc](https://github.com/phenixdigital/phoenix_storybook/pull/382).
 - **improvement**: [Content-Security-Policy (CSP) support](https://github.com/phenixdigital/phoenix_storybook/issues/149). Special thanks to [Gaia](https://github.com/gaiabeatrice) for the PR 🙏
 - **improvement**: [CSRF token is optional](https://github.com/phenixdigital/phoenix_storybook/issues/340)
 - **bugfix**: [generating stories without Elixir. prefix in module names](https://github.com/phenixdigital/phoenix_storybook/issues/343)
 - **bugfix**: [fixed potential import module clashes](https://github.com/phenixdigital/phoenix_storybook/issues/290)
+- **bugfix**: [generated story for flash core_component has been updated (flash was no longer supporting the `autoshow` option)](https://github.com/phenixdigital/phoenix_storybook/pull/369)
+- **bugfix**: [`mix phx.gen.storybook` now prints how to set the _important_ sandbox strategy](https://github.com/phenixdigital/phoenix_storybook/issues/289)
+- **bugfix**: `mix phx.gen.storybook` no longer prints Docker instructions when no Docker file is present.
+- **bugfix**: [dialyxir has been restored](https://github.com/phenixdigital/phoenix_storybook/issues/317)
+- **bugfix**: [fixed multiple imports issue](https://github.com/phenixdigital/phoenix_storybook/issues/408)
 
 ## v0.5.7 (2023-10-05)
 
-- **improvement**: bumped to `phoenix_live_view 0.20.0``
+- **improvement**: bumped to `phoenix_live_view 0.20.0`
 - **improvement**: bumped to Erlang 26 / Elixir 1.15
 - **improvement**: [better router formatting and exporting formatting configuration](https://github.com/phenixdigital/phoenix_storybook/issues/332)
 - **bugfix**: [fixed theme attributes being stripped out from code preview even when themes aren't being used](https://github.com/phenixdigital/phoenix_storybook/issues/352)

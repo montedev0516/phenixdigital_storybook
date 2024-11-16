@@ -99,11 +99,11 @@ defmodule PhoenixStorybook.Rendering.CodeRendererTest do
       assert code =~
                String.trim("""
                <div id="template-component-single-hello" class="template-div">
-                 <button id="set-foo" phx-click={JS.push("assign", value: %{label: "foo"})}>Set label to foo</button>
-                 <button id="set-bar" phx-click={JS.push("assign", value: %{label: "bar"})}>Set label to bar</button>
-                 <button id="toggle-status" phx-click={JS.push("toggle", value: %{attr: :status})}>Toggle status</button>
-                 <button id="set-status-true" phx-click={JS.push("assign", value: %{status: true})}>Set status to true</button>
-                 <button id="set-status-false" phx-click={JS.push("assign", value: %{status: false})}>Set status to false</button>
+                 <button id="set-foo" phx-click={JS.push("psb-assign", value: %{label: "foo"})}>Set label to foo</button>
+                 <button id="set-bar" phx-click={JS.push("psb-assign", value: %{label: "bar"})}>Set label to bar</button>
+                 <button id="toggle-status" phx-click={JS.push("psb-toggle", value: %{attr: :status})}>Toggle status</button>
+                 <button id="set-status-true" phx-click={JS.push("psb-assign", value: %{status: true})}>Set status to true</button>
+                 <button id="set-status-false" phx-click={JS.push("psb-assign", value: %{status: false})}>Set status to false</button>
                  <.template_component label="hello"/>
                </div>
                """)
@@ -206,12 +206,12 @@ defmodule PhoenixStorybook.Rendering.CodeRendererTest do
   describe "render_component_source/2" do
     test "it renders a component source", %{component: component} do
       source = CodeRenderer.render_component_source(component) |> rendered_to_string()
-      assert source =~ ~r/<pre.*lsb highlight.*\/pre>/s
+      assert source =~ ~r/<pre.*psb highlight.*\/pre>/s
     end
 
     test "it renders a live component source", %{live_component: component} do
       source = CodeRenderer.render_component_source(component) |> rendered_to_string()
-      assert source =~ ~r/<pre.*lsb highlight.*\/pre>/s
+      assert source =~ ~r/<pre.*psb highlight.*\/pre>/s
     end
   end
 

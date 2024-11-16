@@ -87,7 +87,7 @@ defmodule PhoenixStorybook.Story do
   An example is a real-world UI showcasing how your components can be used and mixed in complex UI
   interfaces.
 
-  Examples ares rendered as a child LiveView, so you can implement `mount/3`, `render/1` or any
+  Examples are rendered as a child LiveView, so you can implement `mount/3`, `render/1` or any
   `handle_event/3` callback. Unfortunately `handle_params/3` cannot be defined in a child LiveView.
 
   By default, your example story's source code will be shown in a dedicated tab. But you can show
@@ -139,6 +139,7 @@ defmodule PhoenixStorybook.Story do
     @callback slots() :: [Slot.t()]
     @callback variations() :: [Variation.t() | VariationGroup.t()]
     @callback template() :: String.t()
+    @callback layout() :: atom()
   end
 
   defmodule LiveComponentBehaviour do
@@ -152,12 +153,13 @@ defmodule PhoenixStorybook.Story do
     @callback slots() :: [Slot.t()]
     @callback variations() :: [Variation.t() | VariationGroup.t()]
     @callback template() :: String.t()
+    @callback layout() :: atom()
   end
 
   defmodule PageBehaviour do
     @moduledoc false
 
-    @callback navigation() :: [{atom(), String.t(), Icon.t()}]
+    @callback navigation() :: [{atom(), String.t(), Icon.t()} | {atom(), String.t()}]
     @callback render(map()) :: %Phoenix.LiveView.Rendered{}
   end
 
@@ -191,7 +193,7 @@ defmodule PhoenixStorybook.Story do
       end
 
       @impl unquote(component_behaviour(live?))
-      def container, do: {:div, class: "lsb-flex lsb-flex-col lsb-items-center lsb-gap-y-[5px]"}
+      def container, do: :div
 
       @impl unquote(component_behaviour(live?))
       def imports, do: []
@@ -211,6 +213,9 @@ defmodule PhoenixStorybook.Story do
       @impl unquote(component_behaviour(live?))
       def template, do: PhoenixStorybook.TemplateHelpers.default_template()
 
+      @impl unquote(component_behaviour(live?))
+      def layout, do: :two_columns
+
       if unquote(live?) do
         def merged_attributes, do: Attr.merge_attributes(component(), attributes())
         def merged_slots, do: Slot.merge_slots(component(), slots())
@@ -225,7 +230,8 @@ defmodule PhoenixStorybook.Story do
                      attributes: 0,
                      slots: 0,
                      variations: 0,
-                     template: 0
+                     template: 0,
+                     layout: 0
     end
   end
 

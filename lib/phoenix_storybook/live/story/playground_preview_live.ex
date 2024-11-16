@@ -88,15 +88,21 @@ defmodule PhoenixStorybook.Story.PlaygroundPreviewLive do
           assigns.variation,
           assigns.variations_attributes,
           playground_topic: assigns.topic,
-          imports: [{__MODULE__, lsb_inspect: 4}]
+          imports: [{__MODULE__, psb_inspect: 4}]
         )
       )
 
     ~H"""
-    <div id="playground-preview-live" style="width: 100%; height: 100%;">
+    <div id="playground-preview-live" style="width: 100%; height: 100%;" phx-hook="ColorModeHook">
       <div
         id={"sandbox-#{@counter}"}
-        class={LayoutView.sandbox_class(@socket, @story.container(), assigns)}
+        class={
+          LayoutView.sandbox_class(
+            @socket,
+            LayoutView.normalize_story_container(@story.container()),
+            assigns
+          )
+        }
         style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; gap: 5px; height: 100%; width: 100%; padding: 10px;"
       >
         <%= ComponentRenderer.render(@context) %>
@@ -105,11 +111,11 @@ defmodule PhoenixStorybook.Story.PlaygroundPreviewLive do
     """
   end
 
-  # Attributes passed in templates (as <.lsb-variation .../> tag attributes) carry a value only
+  # Attributes passed in templates (as <.psb-variation .../> tag attributes) carry a value only
   # known at runtime.
-  # Template will call `lsb_inspect/4` for each of these attributes, in order to let the Playground
+  # Template will call `psb_inspect/4` for each of these attributes, in order to let the Playground
   # know their current value.
-  def lsb_inspect(playground_topic, variation_id, key, val) do
+  def psb_inspect(playground_topic, variation_id, key, val) do
     PubSub.broadcast!(
       PhoenixStorybook.PubSub,
       playground_topic,
@@ -148,7 +154,7 @@ defmodule PhoenixStorybook.Story.PlaygroundPreviewLive do
 
   def handle_info(_, socket), do: {:noreply, socket}
 
-  def handle_event("assign", assign_params, socket = %{assigns: assigns}) do
+  def handle_event("psb-assign", assign_params, socket = %{assigns: assigns}) do
     variation_attributes =
       for {variation_id, attributes} <- assigns.variations_attributes, into: %{} do
         {new_variation_id, new_attributes} =
@@ -169,7 +175,7 @@ defmodule PhoenixStorybook.Story.PlaygroundPreviewLive do
     {:noreply, socket |> inc_counter() |> assign(variations_attributes: variation_attributes)}
   end
 
-  def handle_event("toggle", assign_params, socket = %{assigns: assigns}) do
+  def handle_event("psb-toggle", assign_params, socket = %{assigns: assigns}) do
     variation_attributes =
       for {variation_id, attributes} <- assigns.variations_attributes, into: %{} do
         {new_variation_id, new_attributes} =

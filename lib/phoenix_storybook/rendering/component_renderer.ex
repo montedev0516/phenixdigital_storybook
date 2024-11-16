@@ -147,16 +147,22 @@ defmodule PhoenixStorybook.Rendering.ComponentRenderer do
         tag_handler: Phoenix.LiveView.HTMLEngine
       )
 
-    {evaluated, _, _} =
-      Code.eval_quoted_with_env(
-        quoted_code,
-        [assigns: %{}],
-        %Macro.Env{
+    env =
+      Map.merge(
+        __ENV__,
+        %{
           requires: [Kernel],
           aliases: eval_quoted_aliases(opts, fun_or_mod),
           functions: eval_quoted_functions(opts, fun_or_mod),
           macros: [{Kernel, Kernel.__info__(:macros)}]
         }
+      )
+
+    {evaluated, _, _} =
+      Code.eval_quoted_with_env(
+        quoted_code,
+        [assigns: %{}],
+        env
       )
 
     LiveViewEngine.live_to_iodata(evaluated)
@@ -196,7 +202,11 @@ defmodule PhoenixStorybook.Rendering.ComponentRenderer do
     ] ++ extra_imports(opts)
   end
 
-  defp extra_imports(opts), do: Keyword.get(opts, :imports, [])
+  defp extra_imports(opts) do
+    for {mod, imports} <- Keyword.get(opts, :imports, []), imp <- imports do
+      {mod, [imp]}
+    end
+  end
 
   defp module(fun) when is_function(fun), do: function_module(fun)
   defp module(mod) when is_atom(mod), do: mod

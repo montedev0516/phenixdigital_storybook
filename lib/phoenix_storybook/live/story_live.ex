@@ -15,7 +15,6 @@ defmodule PhoenixStorybook.StoryLive do
   import PhoenixStorybook.NavigationHelpers
 
   def mount(_params, _session, socket) do
-    connect_params = get_connect_params(socket)["extra"]
     playground_topic = "playground-#{inspect(self())}"
     event_logs_topic = "event_logs:#{inspect(self())}"
 
@@ -32,8 +31,16 @@ defmodule PhoenixStorybook.StoryLive do
        playground_preview_pid: nil,
        playground_topic: playground_topic,
        fa_plan: backend_module.config(:font_awesome_plan, :free),
-       connect_params: connect_params
+       color_mode: get_color_mode(socket)
      )}
+  end
+
+  defp get_color_mode(socket) do
+    if connected?(socket) do
+      socket |> get_connect_params() |> Map.get("color_mode")
+    else
+      nil
+    end
   end
 
   def handle_params(params, _uri, socket) when params == %{} do
@@ -153,19 +160,19 @@ defmodule PhoenixStorybook.StoryLive do
     end
   end
 
-  defp close_sidebar(socket), do: push_event(socket, "lsb:close-sidebar", %{"id" => "#sidebar"})
+  defp close_sidebar(socket), do: push_event(socket, "psb:close-sidebar", %{"id" => "#sidebar"})
 
   def render(assigns = %{story_load_error: error})
       when not is_nil(error) do
     ~H"""
-    <div class="lsb lsb-my-6 md:lsb-my-12 lsb-space-y-4 md:lsb-space-y-8 lsb-flex lsb-flex-col">
-      <h1 class="lsb lsb-font-medium lsb-text-red-500 lsb-text-lg md:lsb-text-xl lg:lsb-text-2xl lsb-align-middle">
+    <div class="psb psb-my-6 md:psb-my-12 psb-space-y-4 md:psb-space-y-8 psb-flex psb-flex-col">
+      <h1 class="psb psb-font-medium psb-text-red-500 psb-text-lg md:psb-text-xl lg:psb-text-2xl psb-align-middle">
         <.fa_icon style={:duotone} name="bomb" plan={@fa_plan} />
         <%= @story_load_error %>
       </h1>
 
-      <div class="lsb lsb-border lsb-rounded-md lsb-border-slate-100 lsb-bg-slate-800 lsb-p-4 lsb-overflow-x-scroll">
-        <pre class="lsb lsb-text-xs md:lsb-text-sm lsb-leading-loose lsb-text-red-500"><%= @story_load_exception %></pre>
+      <div class="psb psb-border psb-rounded-md psb-border-slate-100 psb-bg-slate-800 psb-p-4 psb-overflow-x-scroll">
+        <pre class="psb psb-text-xs md:psb-text-sm psb-leading-loose psb-text-red-500"><%= @story_load_exception %></pre>
       </div>
     </div>
     """
@@ -176,15 +183,21 @@ defmodule PhoenixStorybook.StoryLive do
 
     ~H"""
     <div
-      class="lsb lsb-space-y-6 lsb-pb-12 lsb-flex lsb-flex-col lsb-h-[calc(100vh_-_7rem)] lg:lsb-h-[calc(100vh_-_4rem)]"
+      class="psb psb-space-y-6 psb-pb-12 psb-flex psb-flex-col psb-h-[calc(100vh_-_7rem)] lg:psb-h-[calc(100vh_-_4rem)]"
       id="story-live"
       phx-hook="StoryHook"
     >
-      <div class="lsb">
-        <div class="lsb lsb-flex lsb-my-6 lsb-items-center">
-          <h2 class="lsb lsb-flex-1 lsb-flex-nowrap lsb-whitespace-nowrap lsb-text-xl md:lsb-text-2xl lg:lsb-text-3xl lsb-m-0 lsb-font-extrabold lsb-tracking-tight lsb-text-indigo-600">
+      <div class="psb">
+        <div class="psb psb-flex psb-my-6 psb-items-center">
+          <h2 class="psb psb-flex-1 psb-flex-nowrap psb-whitespace-nowrap psb-text-xl md:psb-text-2xl lg:psb-text-3xl psb-m-0 psb-font-extrabold psb-tracking-tight psb-text-indigo-600 dark:psb-text-sky-400">
             <%= if icon = @story_entry.icon do %>
-              <.user_icon icon={icon} class="lsb-pr-2 lsb-text-indigo-600" fa_plan={@fa_plan} />
+              <span id="story-icon" phx-update="ignore">
+                <.user_icon
+                  icon={icon}
+                  class="psb-pr-2 psb-text-indigo-600 dark:psb-text-sky-400"
+                  fa_plan={@fa_plan}
+                />
+              </span>
             <% end %>
             <%= @story_entry.name %>
           </h2>
@@ -207,32 +220,32 @@ defmodule PhoenixStorybook.StoryLive do
 
   defp print_doc(assigns = %{doc: [_header | _]}) do
     ~H"""
-    <div class="lsb lsb-text-base md:lsb-text-lg lsb-leading-7 lsb-text-slate-700">
+    <div class="psb psb-text-base md:psb-text-lg psb-leading-7 psb-text-slate-700 dark:psb-text-slate-300">
       <%= @doc |> Enum.at(0) |> raw() %>
     </div>
     <%= if Enum.count(@doc) > 1 do %>
       <a
         phx-click={JS.show(to: "#doc-next") |> JS.hide() |> JS.show(to: "#read-less")}
         id="read-more"
-        class="lsb lsb-py-2 lsb-inline-block lsb-text-slate-400 hover:lsb-text-indigo-700 lsb-cursor-pointer"
+        class="psb psb-py-2 psb-inline-block psb-text-slate-400 hover:psb-text-indigo-700 dark:hover:psb-text-sky-400 psb-cursor-pointer"
       >
         <.fa_icon
           name="caret-right"
           style={:thin}
           plan={@fa_plan}
-          class="lsb-relative lsb-top-px lsb-mr-1"
+          class="psb-relative psb-top-px psb-mr-1"
         /> Read more
       </a>
       <a
         phx-click={JS.hide(to: "#doc-next") |> JS.hide() |> JS.show(to: "#read-more")}
         id="read-less"
-        class="lsb lsb-pt-2 lsb-pb-4 lsb-hidden lsb-inline-block lsb-text-slate-400 hover:lsb-text-indigo-700 lsb-cursor-pointer"
+        class="psb psb-pt-2 psb-pb-4 psb-hidden psb-inline-block psb-text-slate-400 hover:psb-text-indigo-700 dark:hover:psb-text-sky-400 psb-cursor-pointer"
       >
-        <.fa_icon name="caret-down" style={:thin} plan={@fa_plan} class="lsb-mr-1" /> Read less
+        <.fa_icon name="caret-down" style={:thin} plan={@fa_plan} class="psb-mr-1" /> Read less
       </a>
-      <div id="doc-next" class="lsb-hidden lsb-space-y-4 ">
-        <%= for paragraph <- Enum.slice(@doc, 1..-1) do %>
-          <div class="lsb lsb-text-sm md:lsb-text-base lsb-leading-7 lsb-text-slate-700">
+      <div id="doc-next" class="psb-hidden psb-space-y-4 ">
+        <%= for paragraph <- Enum.slice(@doc, 1..-1//1) do %>
+          <div class="psb psb-text-sm md:psb-text-base psb-leading-7 psb-text-slate-700 dark:psb-text-slate-500">
             <%= raw(paragraph) %>
           </div>
         <% end %>
@@ -279,42 +292,42 @@ defmodule PhoenixStorybook.StoryLive do
     assigns = assign(assigns, :tabs, tabs)
 
     ~H"""
-    <div class="lsb lsb-flex lsb-flex-items-center">
+    <div class="psb psb-flex psb-flex-items-center">
       <!-- mobile version of navigation tabs -->
       <.form
         :let={f}
         for={%{}}
         as={:navigation}
         id={"#{Macro.underscore(@story)}-navigation-form"}
-        class="lsb story-nav-form lg:lsb-hidden"
+        class="psb story-nav-form lg:psb-hidden"
       >
         <%= select(f, :tab, navigation_select_options(@tabs),
-          "phx-change": "set-tab",
+          "phx-change": "psb-set-tab",
           class:
-            "lsb lsb-form-select lsb-w-full lsb-pl-3 lsb-pr-10 lsb-py-1 lsb-text-base lsb-border-gray-300 focus:lsb-outline-none focus:lsb-ring-indigo-600 focus:lsb-border-indigo-600 sm:lsb-text-sm lsb-rounded-md",
+            "psb psb-form-select dark:psb-bg-slate-800 psb-text-gray-600 dark:psb-text-slate-300 psb-border-gray-300 dark:psb-border-slate-600 psb-w-full psb-pl-3 psb-pr-10 psb-py-1 psb-text-base focus:psb-outline-none focus:psb-ring-indigo-600 dark:focus:psb-ring-sky-400 focus:psb-border-indigo-600 dark:focus:psb-border-sky-400 sm:psb-text-sm psb-rounded-md",
           value: @tab
         ) %>
       </.form>
       <!-- :lg+ version of navigation tabs -->
-      <nav class="lsb story-tabs lsb-hidden lg:lsb-flex lsb-rounded-lg lsb-border lsb-bg-slate-100 lsb-hover:lsb-bg-slate-200 lsb-h-10 lsb-text-sm lsb-font-medium">
+      <nav class="psb story-tabs psb-hidden lg:psb-flex psb-rounded-lg psb-border psb-border-gray-300 dark:psb-border-slate-600 psb-bg-slate-100 dark:psb-bg-slate-900 psb-hover:psb-bg-slate-200 dark:psb-hover:psb-bg-slate-800 psb-h-10 psb-text-sm psb-font-medium">
         <%= for tab <- @tabs do %>
           <% {tab_id, tab_label} = {elem(tab, 0), elem(tab, 1)} %>
           <a
             href="#"
-            phx-click="set-tab"
+            phx-click="psb-set-tab"
             phx-value-tab={tab_id}
-            class={"lsb lsb-group focus:lsb-outline-none lsb-flex lsb-rounded-md #{active_link(@tab, tab_id)}"}
+            class={"psb psb-group focus:psb-outline-none psb-flex psb-rounded-md dark:psb-text-slate-400 #{active_link(@tab, tab_id)}"}
           >
             <span class={active_span(@tab, tab_id)}>
               <% icon = if tuple_size(tab) == 3, do: elem(tab, 2), else: nil %>
               <%= if icon do %>
                 <.user_icon
                   icon={icon}
-                  class={"lg:lsb-mr-2 group-hover:lsb-text-indigo-600 #{active_text(@tab, tab_id)}"}
+                  class={"lg:psb-mr-2 group-hover:psb-text-indigo-600 dark:group-hover:psb-text-sky-400 #{active_text(@tab, tab_id)}"}
                   fa_plan={@fa_plan}
                 />
               <% end %>
-              <span class={"lsb lsb-whitespace-nowrap group-hover:lsb-text-indigo-600 #{active_text(@tab, tab_id)}"}>
+              <span class={"psb psb-whitespace-nowrap group-hover:psb-text-indigo-600 dark:group-hover:psb-text-sky-400 #{active_text(@tab, tab_id)}"}>
                 <%= tab_label %>
               </span>
             </span>
@@ -325,21 +338,21 @@ defmodule PhoenixStorybook.StoryLive do
     """
   end
 
-  defp active_link(same, same), do: "lsb lsb-bg-white lsb-opacity-100"
+  defp active_link(same, same), do: "psb psb-bg-white psb-opacity-100"
 
   defp active_link(_tab, _current_tab) do
-    "lsb lsb-ml-0.5 lsb-p-1.5 lg:lsb-pl-2.5 lg:lsb-pr-3.5 lsb-items-center lsb-text-slate-600"
+    "psb psb-ml-0.5 psb-p-1.5 lg:psb-pl-2.5 lg:psb-pr-3.5 psb-items-center psb-text-slate-600"
   end
 
   defp active_span(same, same) do
-    "lsb lsb-h-full lsb-rounded-md lsb-flex lsb-items-center lsb-bg-white lsb-shadow-sm \
-    lsb-ring-opacity-5 lsb-text-indigo-600 lsb-p-1.5 lg:lsb-pl-2.5 lg:lsb-pr-3.5"
+    "psb psb-h-full psb-rounded-md psb-flex psb-items-center psb-bg-white dark:psb-bg-slate-700 psb-shadow-sm \
+    psb-ring-opacity-5 psb-text-indigo-600 dark:psb-text-sky-400 psb-p-1.5 lg:psb-pl-2.5 lg:psb-pr-3.5"
   end
 
   defp active_span(_tab, _current_tab), do: ""
 
-  defp active_text(same, same), do: "lsb-text-indigo-600"
-  defp active_text(_tab, _current_tab), do: "-lsb-ml-0.5"
+  defp active_text(same, same), do: "psb-text-indigo-600 dark:psb-text-sky-400"
+  defp active_text(_tab, _current_tab), do: "-psb-ml-0.5"
 
   defp navigation_select_options(tabs) do
     for {tab, label, _icon} <- tabs, do: {label, tab}
@@ -352,26 +365,27 @@ defmodule PhoenixStorybook.StoryLive do
         sandbox_attributes:
           case assigns.story.container() do
             {:div, opts} -> assigns_to_attributes(opts, [:class])
+            {:iframe, opts} -> assigns_to_attributes(opts, [:style])
             _ -> []
           end
       )
 
     ~H"""
-    <div class="lsb  lsb-space-y-12 lsb-pb-12" id={"story-variations-#{story_id(@story)}"}>
+    <div class="psb psb-space-y-12 psb-pb-12" id={"story-variations-#{story_id(@story)}"}>
       <%= for variation = %{id: variation_id, description: description} <- @story.variations(),
               extra_attributes = ExtraAssignsHelpers.variation_extra_attributes(variation, assigns),
               rendering_context = RenderingContext.build(assigns.backend_module, assigns.story, variation, extra_attributes) do %>
         <div
           id={anchor_id(variation)}
-          class="lsb lsb-variation-block lsb-gap-x-4 lsb-grid lsb-grid-cols-5"
+          class="psb psb-variation-block psb-gap-x-4 psb-grid psb-grid-cols-5"
         >
           <!-- Variation description -->
-          <div class="lsb lsb-col-span-5 lsb-font-medium hover:lsb-font-semibold lsb-mb-6 lsb-border-b lsb-border-slate-100 md:lsb-text-lg lsb-leading-7 lsb-text-slate-700 lsb-flex lsb-justify-between">
-            <%= link to: "##{anchor_id(variation)}", class: "lsb variation-anchor-link" do %>
+          <div class="psb psb-col-span-5 psb-font-medium hover:psb-font-semibold psb-mb-6 psb-border-b psb-border-slate-100 dark:psb-border-slate-600 md:psb-text-lg psb-leading-7 psb-text-slate-700 dark:psb-text-slate-300 psb-flex psb-justify-between">
+            <%= link to: "##{anchor_id(variation)}", class: "psb variation-anchor-link" do %>
               <.fa_icon
                 style={:light}
                 name="link"
-                class="lsb-hidden -lsb-ml-8 lsb-pr-1 lsb-text-slate-400"
+                class="psb-hidden -psb-ml-8 psb-pr-1 psb-text-slate-400"
                 plan={@fa_plan}
               />
               <%= if description do %>
@@ -388,45 +402,69 @@ defmodule PhoenixStorybook.StoryLive do
                   theme: @theme
                 })
               }
-              class="lsb lsb-hidden lsb-open-playground-link"
+              class="psb psb-hidden psb-open-playground-link"
             >
-              <span class="lsb lsb-text-base lsb-font-light lsb-text-gray-500 hover:lsb-text-indigo-600 hover:lsb-font-medium ">
+              <span class="psb psb-text-base psb-font-light psb-text-gray-500 dark:psb-text-slate-300 hover:psb-text-indigo-600 dark:hover:psb-text-sky-400 hover:psb-font-medium ">
                 Open in playground <.fa_icon style={:regular} name="arrow-right" plan={@fa_plan} />
               </span>
             </.link>
           </div>
           <!-- Variation component preview -->
-          <div class="lsb lsb-border lsb-border-slate-100 lsb-rounded-md lsb-col-span-5 lg:lsb-col-span-2 lsb-mb-4 lg:lsb-mb-0 lsb-flex lsb-items-center lsb-justify-center lsb-p-2 lsb-bg-white lsb-shadow-sm">
-            <%= if @story.container() == :iframe do %>
-              <iframe
-                phx-update="ignore"
-                id={iframe_id(@story, variation)}
-                src={
-                  path_to_iframe(@socket, @root_path, @story_path,
-                    variation_id: variation.id,
-                    theme: @theme
-                  )
-                }
-                class="lsb-w-full lsb-border-0"
-                height="0"
-                onload="javascript:(function(o){o.style.height=o.contentWindow.document.body.scrollHeight+'px';}(this));"
-              />
-            <% else %>
-              <div
-                class={LayoutView.sandbox_class(@socket, @story.container(), assigns)}
-                {@sandbox_attributes}
-              >
-                <%= ComponentRenderer.render(rendering_context) %>
-              </div>
+          <div
+            id={"#{anchor_id(variation)}-component"}
+            class={[
+              "psb psb-border dark:psb-bg-slate-800 psb-border-slate-100 dark:psb-border-slate-600 psb-rounded-md psb-col-span-5 psb-mb-4 lg:psb-mb-0 psb-flex psb-items-center psb-justify-center psb-p-2 psb-bg-white psb-shadow-sm",
+              component_layout_class(@story)
+            ]}
+          >
+            <%= case {LayoutView.normalize_story_container(@story.container()), @story.storybook_type()} do %>
+              <% {{:iframe, iframe_opts}, :component} -> %>
+                <iframe
+                  phx-update="ignore"
+                  id={iframe_id(@story, variation, @color_mode)}
+                  class="psb-w-full psb-border-0"
+                  srcdoc={iframe_srcdoc(assigns, rendering_context, iframe_opts)}
+                  height="0"
+                  onload={iframe_onload_js()}
+                  {@sandbox_attributes}
+                />
+              <% {{:iframe, _iframe_opts}, :live_component} -> %>
+                <iframe
+                  phx-update="ignore"
+                  id={iframe_id(@story, variation, @color_mode)}
+                  class="psb-w-full psb-border-0"
+                  src={
+                    path_to_iframe(@socket, @root_path, @story_path,
+                      variation_id: variation.id,
+                      theme: @theme
+                    )
+                  }
+                  height="0"
+                  onload={iframe_onload_js()}
+                  {@sandbox_attributes}
+                />
+              <% {container_with_opts, _component_kind} -> %>
+                <div
+                  class={LayoutView.sandbox_class(@socket, container_with_opts, assigns)}
+                  {@sandbox_attributes}
+                >
+                  <%= ComponentRenderer.render(rendering_context) %>
+                </div>
             <% end %>
           </div>
           <!-- Variation code -->
-          <div class="lsb lsb-border lsb-border-slate-100 lsb-bg-slate-800 lsb-rounded-md lsb-col-span-5 lg:lsb-col-span-3 lsb-group lsb-relative lsb-shadow-sm lsb-flex lsb-flex-col lsb-justify-center">
+          <div
+            id={"#{anchor_id(variation)}-code"}
+            class={[
+              "psb psb-border psb-border-slate-100 dark:psb-border-slate-600 psb-bg-slate-800 psb-rounded-md psb-col-span-5 psb-group psb-relative psb-shadow-sm psb-flex psb-flex-col psb-justify-center",
+              code_layout_class(@story)
+            ]}
+          >
             <div
-              phx-click={JS.dispatch("lsb:copy-code")}
-              class="lsb lsb-hidden group-hover:lsb-block lsb-bg-slate-700 lsb-text-slate-500 hover:lsb-text-slate-100 lsb-z-10 lsb-absolute lsb-top-2 lsb-right-2 lsb-px-2 lsb-py-1 lsb-rounded-md lsb-cursor-pointer"
+              phx-click={JS.dispatch("psb:copy-code")}
+              class="psb psb-hidden group-hover:psb-block psb-bg-slate-700 psb-text-slate-500 hover:psb-text-slate-100 psb-z-10 psb-absolute psb-top-2 psb-right-2 psb-px-2 psb-py-1 psb-rounded-md psb-cursor-pointer"
             >
-              <.fa_icon name="copy" class="lsb-text-inherit" plan={@fa_plan} />
+              <.fa_icon name="copy" class="psb-text-inherit" plan={@fa_plan} />
             </div>
             <%= CodeRenderer.render(rendering_context) %>
           </div>
@@ -439,7 +477,7 @@ defmodule PhoenixStorybook.StoryLive do
   defp render_content(type, assigns = %{tab: :source})
        when type in [:component, :live_component] do
     ~H"""
-    <div class="lsb lsb-flex-1 lsb-flex lsb-flex-col lsb-overflow-auto lsb-max-h-full">
+    <div class="psb psb-flex-1 psb-flex psb-flex-col psb-overflow-auto psb-max-h-full">
       <%= @story |> CodeRenderer.render_component_source() |> to_raw_html() %>
     </div>
     """
@@ -457,6 +495,7 @@ defmodule PhoenixStorybook.StoryLive do
       variation={@variation}
       playground_error={@playground_error}
       theme={@theme}
+      color_mode={@color_mode}
       topic={@playground_topic}
       fa_plan={@fa_plan}
       root_path={@root_path}
@@ -470,8 +509,8 @@ defmodule PhoenixStorybook.StoryLive do
 
   defp render_content(:page, assigns) do
     ~H"""
-    <div class={LayoutView.sandbox_class(@socket, {:div, class: "lsb lsb-pb-12"}, assigns)}>
-      <%= @story.render(%{__changed__: %{}, tab: @tab, theme: @theme, connect_params: @connect_params})
+    <div class={LayoutView.sandbox_class(@socket, {:div, class: "psb psb-pb-12"}, assigns)}>
+      <%= @story.render(%{__changed__: %{}, tab: @tab, theme: @theme})
       |> to_raw_html() %>
     </div>
     """
@@ -485,13 +524,13 @@ defmodule PhoenixStorybook.StoryLive do
       session: %{"theme" => theme},
       container:
         {:div,
-         class: LayoutView.sandbox_class(assigns.socket, {:div, class: "lsb lsb-pb-12"}, assigns)}
+         class: LayoutView.sandbox_class(assigns.socket, {:div, class: "psb psb-pb-12"}, assigns)}
     )
   end
 
   defp render_content(:example, assigns = %{tab: :source}) do
     ~H"""
-    <div class="lsb lsb-flex-1 lsb-flex lsb-flex-col lsb-overflow-auto lsb-max-h-full">
+    <div class="psb psb-flex-1 psb-flex psb-flex-col psb-overflow-auto psb-max-h-full">
       <%= @story.__source__()
       |> remove_example_code()
       |> CodeRenderer.render_source()
@@ -509,11 +548,47 @@ defmodule PhoenixStorybook.StoryLive do
         assigns = assign(assigns, :source, source)
 
         ~H"""
-        <div class="lsb lsb-flex-1 lsb-flex lsb-flex-col lsb-overflow-auto lsb-max-h-full">
+        <div class="psb psb-flex-1 psb-flex psb-flex-col psb-overflow-auto psb-max-h-full">
           <%= @source |> CodeRenderer.render_source() |> to_raw_html() %>
         </div>
         """
     end
+  end
+
+  defp component_layout_class(story) do
+    case story.layout() do
+      :one_column -> nil
+      :two_columns -> "lg:psb-col-span-2"
+    end
+  end
+
+  defp code_layout_class(story) do
+    case story.layout() do
+      :one_column -> nil
+      :two_columns -> "lg:psb-col-span-3"
+    end
+  end
+
+  defp iframe_srcdoc(assigns, rendering_context, iframe_opts) do
+    assigns =
+      assign(assigns,
+        conn: assigns.socket,
+        rendering_context: rendering_context,
+        iframe_opts: iframe_opts
+      )
+
+    ~H"""
+    <%= Phoenix.View.render_layout LayoutView, "root_iframe.html", assigns do %>
+      <div id="iframe-container" style={@iframe_opts[:style]} phx-hook="ColorModeHook">
+        <%= ComponentRenderer.render(@rendering_context) %>
+      </div>
+    <% end %>
+    """
+    |> Safe.to_iodata()
+  end
+
+  defp iframe_onload_js do
+    "javascript:(function(o){o.style.height=o.contentWindow.document.body.scrollHeight+'px';}(this));"
   end
 
   # removing Storybook's specific not useful while reading example's source code.
@@ -534,8 +609,8 @@ defmodule PhoenixStorybook.StoryLive do
     |> Phoenix.HTML.raw()
   end
 
-  defp iframe_id(story, variation) do
-    "iframe-#{story_id(story)}-variation-#{variation.id}"
+  defp iframe_id(story, variation, color_mode) do
+    "iframe-#{story_id(story)}-variation-#{variation.id}-#{color_mode}"
   end
 
   defp story_id(story_module) do
@@ -546,7 +621,7 @@ defmodule PhoenixStorybook.StoryLive do
     id |> to_string() |> String.replace("_", "-")
   end
 
-  def handle_event("set-theme", %{"theme" => theme}, socket) do
+  def handle_event("psb-set-theme", %{"theme" => theme}, socket) do
     PubSub.broadcast!(
       PhoenixStorybook.PubSub,
       socket.assigns.playground_topic,
@@ -561,19 +636,19 @@ defmodule PhoenixStorybook.StoryLive do
      |> patch_to(socket.assigns.root_path, socket.assigns.story_path, %{theme: theme})}
   end
 
-  def handle_event("set-tab", %{"tab" => tab}, socket) do
+  def handle_event("psb-set-tab", %{"tab" => tab}, socket) do
     {:noreply, patch_to(socket, socket.assigns.root_path, socket.assigns.story_path, %{tab: tab})}
   end
 
-  def handle_event("set-tab", %{"navigation" => %{"tab" => tab}}, socket) do
+  def handle_event("psb-set-tab", %{"navigation" => %{"tab" => tab}}, socket) do
     {:noreply, patch_to(socket, socket.assigns.root_path, socket.assigns.story_path, %{tab: tab})}
   end
 
-  def handle_event("clear-playground-error", _, socket) do
+  def handle_event("psb-clear-playground-error", _, socket) do
     {:noreply, assign(socket, :playground_error, nil)}
   end
 
-  def handle_event("assign", assign_params, socket = %{assigns: assigns}) do
+  def handle_event("psb-assign", assign_params, socket = %{assigns: assigns}) do
     {variation_id, variation_extra_assigns} =
       ExtraAssignsHelpers.handle_set_variation_assign(
         assign_params,
@@ -589,7 +664,7 @@ defmodule PhoenixStorybook.StoryLive do
     {:noreply, assign(socket, :variation_extra_assigns, variation_extra_assigns)}
   end
 
-  def handle_event("toggle", assign_params, socket = %{assigns: assigns}) do
+  def handle_event("psb-toggle", assign_params, socket = %{assigns: assigns}) do
     {variation_id, variation_extra_assigns} =
       ExtraAssignsHelpers.handle_toggle_variation_assign(
         assign_params,
@@ -603,6 +678,14 @@ defmodule PhoenixStorybook.StoryLive do
     }
 
     {:noreply, assign(socket, :variation_extra_assigns, variation_extra_assigns)}
+  end
+
+  def handle_event("psb-set-color-mode", %{"mode" => mode}, socket) do
+    {:noreply, socket |> assign(:color_mode, mode) |> push_event("set-color-mode", %{mode: mode})}
+  end
+
+  def handle_event(_, _, socket) do
+    {:noreply, socket}
   end
 
   def handle_info({:playground_preview_pid, pid}, socket) do

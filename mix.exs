@@ -1,7 +1,7 @@
 defmodule PhoenixStorybook.MixProject do
   use Mix.Project
 
-  @version "0.5.7"
+  @version "0.6.4"
 
   def project do
     [
@@ -22,14 +22,6 @@ defmodule PhoenixStorybook.MixProject do
         coveralls: :test,
         "coveralls.lcov": :test,
         coverage: :test
-      ]
-      # dialyzer: [
-      #   plt_add_apps: [:mix, :jason, :earmark],
-      #   plt_local_path: ".plts",
-      #   plt_core_path: ".plts",
-      #   plt_file: {:no_warn, ".plts/storybook.plt"}
-      # ],
-      # prune_code_paths: false
     ]
   end
 
@@ -37,12 +29,9 @@ defmodule PhoenixStorybook.MixProject do
   def application do
     [
       mod: {PhoenixStorybook.Application, []},
-      extra_applications: [:logger] ++ extra_applications(Mix.env())
+      extra_applications: [:logger]
     ]
   end
-
-  defp extra_applications(env) when env in [:dev, :test], do: [:hex]
-  defp extra_applications(_), do: []
 
   defp elixirc_paths(:test), do: ["lib", "test/fixtures"]
   defp elixirc_paths(_), do: ["lib"]
@@ -52,15 +41,16 @@ defmodule PhoenixStorybook.MixProject do
     [
       {:phoenix, "~> 1.7.0"},
       {:phoenix_live_view, "> 0.18.7"},
+      {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_view, "~> 2.0"},
-      {:makeup_eex, "~> 0.1.0"},
+      {:makeup_eex, "~> 1.0.0"},
       {:heroicons, "~> 0.5", optional: true},
       {:jason, "~> 1.3", optional: true},
       {:earmark, "~> 1.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:floki, "~> 0.34.0", only: :test},
+      {:floki, "~> 0.36.1", only: :test},
       {:mox, "~> 1.0", only: :test},
       {:dialyxir, "~> 1.3", only: [:dev, :test], runtime: false}
     ]
@@ -83,6 +73,7 @@ defmodule PhoenixStorybook.MixProject do
       "guides/icons.md",
       "guides/sandboxing.md",
       "guides/setup.md",
+      "guides/testing.md",
       "guides/theming.md"
     ]
   end
@@ -90,7 +81,8 @@ defmodule PhoenixStorybook.MixProject do
   defp package do
     [
       maintainers: ["Christian Blavier"],
-      files: ~w(mix.exs priv lib guides README.md LICENSE.md CHANGELOG.md CONTRIBUTING.md),
+      files:
+        ~w(mix.exs priv lib guides README.md LICENSE.md CHANGELOG.md CONTRIBUTING.md .formatter.exs),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/phenixdigital/phoenix_storybook"}
     ]

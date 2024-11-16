@@ -183,16 +183,23 @@ defmodule PhoenixStorybook.Stories.StoryValidatorTest do
 
       mock = component_stub(container: :iframe)
       assert validate!(mock)
+
+      mock = component_stub(container: {:iframe, style: "bar"})
+      assert validate!(mock)
     end
 
     test "with invalid value it will raise" do
       mock = component_stub(container: :span)
       e = assert_raise CompileError, fn -> validate!(mock) end
-      assert e.description =~ "story container must be :div, {:div, opts} or :iframe"
+
+      assert e.description =~
+               "story container must be :div, {:div, opts}, :iframe or {:iframe, opts}"
 
       mock = component_stub(container: "iframe")
       e = assert_raise CompileError, fn -> validate!(mock) end
-      assert e.description =~ "story container must be :div, {:div, opts} or :iframe"
+
+      assert e.description =~
+               "story container must be :div, {:div, opts}, :iframe or {:iframe, opts}"
     end
   end
 
@@ -201,7 +208,7 @@ defmodule PhoenixStorybook.Stories.StoryValidatorTest do
       mock = component_stub(template: nil)
       assert validate!(mock)
 
-      mock = component_stub(template: "<div><.lsb-variation/></div>")
+      mock = component_stub(template: "<div><.psb-variation/></div>")
       assert validate!(mock)
     end
 
@@ -209,6 +216,25 @@ defmodule PhoenixStorybook.Stories.StoryValidatorTest do
       mock = component_stub(template: :invalid)
       e = assert_raise CompileError, fn -> validate!(mock) end
       assert e.description =~ "story template must be a binary"
+    end
+  end
+
+  describe "story layout" do
+    test "with proper value it wont raise" do
+      mock = component_stub(layout: :one_column)
+      assert validate!(mock)
+
+      mock = component_stub(layout: :two_columns)
+      assert validate!(mock)
+
+      mock = component_stub(layout: :one_column)
+      assert validate!(mock)
+    end
+
+    test "with invalid value it will raise" do
+      mock = component_stub(layout: :invalid)
+      e = assert_raise CompileError, fn -> validate!(mock) end
+      assert e.description =~ "story layout must be :one_column or :two_columns"
     end
   end
 
@@ -222,7 +248,7 @@ defmodule PhoenixStorybook.Stories.StoryValidatorTest do
 
       mock =
         component_stub(
-          variations: [%Variation{id: :foo, template: "<div><.lsb-variation/></div>"}]
+          variations: [%Variation{id: :foo, template: "<div><.psb-variation/></div>"}]
         )
 
       assert validate!(mock)
@@ -246,7 +272,7 @@ defmodule PhoenixStorybook.Stories.StoryValidatorTest do
       mock =
         component_stub(
           variations: [
-            %VariationGroup{id: :foo, variations: [], template: "<div><.lsb-variation/></div>"}
+            %VariationGroup{id: :foo, variations: [], template: "<div><.psb-variation/></div>"}
           ]
         )
 
@@ -269,7 +295,7 @@ defmodule PhoenixStorybook.Stories.StoryValidatorTest do
           variations: [
             %VariationGroup{
               id: :group,
-              variations: [%Variation{id: :foo, template: "<div><.lsb-variation/></div>"}]
+              variations: [%Variation{id: :foo, template: "<div><.psb-variation/></div>"}]
             }
           ]
         )

@@ -121,7 +121,7 @@ defmodule PhoenixStorybook.Rendering.ComponentRendererTest do
       assert html |> Floki.find("span") |> length() == 2
     end
 
-    test "renders a variation group with a <.lsb-variation-group/> placeholder template", %{
+    test "renders a variation group with a <.psb-variation-group/> placeholder template", %{
       template_component: component
     } do
       html =
@@ -205,6 +205,32 @@ defmodule PhoenixStorybook.Rendering.ComponentRendererTest do
       end
 
       render_variation(LongListStory, :default)
+    end
+
+    test "it works with multiple imports" do
+      defmodule MultipleImport do
+        use PhoenixStorybook.Story, :component
+        def function, do: &NestedComponent.nested_component/1
+        def imports, do: [{NestedComponent, nested: 1, other_nested: 1}]
+
+        def variations do
+          [
+            %Variation{
+              id: :default,
+              slots: [
+                """
+                <.nested label="hello"/>
+                <.other_nested label="world"/>
+                """
+              ]
+            }
+          ]
+        end
+      end
+
+      html = render_variation(MultipleImport, :default) |> rendered_to_string()
+      assert html =~ "hello"
+      assert html =~ "world"
     end
   end
 

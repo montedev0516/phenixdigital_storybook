@@ -84,6 +84,14 @@ defmodule PhoenixStorybook.StoryLiveTest do
       assert html =~ "Component first doc paragraph."
     end
 
+    test "no-ops events from an event component", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/storybook/event/event_component")
+      assert html =~ "Hello variation"
+      view |> element("#event-component") |> render_click()
+      # This will raise if there's no default handle_event clause
+      assert true
+    end
+
     test "renders component story and navigate to source tab", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/component")
 
@@ -91,7 +99,7 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :source, theme: :default, variation_id: :hello}}"
+        ~p"/storybook/component?#{[tab: :source, theme: :default, variation_id: :hello]}"
       )
 
       assert html =~ "defmodule"
@@ -100,31 +108,31 @@ defmodule PhoenixStorybook.StoryLiveTest do
     test "renders component, change theme and navigate", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/component")
 
-      view |> element("a.lsb-theme", "Colorful") |> render_click()
+      view |> element("a.psb-theme", "Colorful") |> render_click()
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :variations, theme: :colorful, variation_id: :hello}}"
+        ~p"/storybook/component?#{[tab: :variations, theme: :colorful, variation_id: :hello]}"
       )
 
       view |> element("a", "Source") |> render_click()
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :source, theme: :colorful, variation_id: :hello}}"
+        ~p"/storybook/component?#{[tab: :source, theme: :colorful, variation_id: :hello]}"
       )
 
       html = view |> element("a", "Playground") |> render_click()
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :playground, theme: :colorful, variation_id: :hello}}"
+        ~p"/storybook/component?#{[tab: :playground, theme: :colorful, variation_id: :hello]}"
       )
 
       assert html =~ "component: hello colorful"
 
       Phoenix.PubSub.subscribe(PhoenixStorybook.PubSub, "playground-#{inspect(view.pid)}")
-      view |> element("a.lsb-theme", "Default") |> render_click()
+      view |> element("a.psb-theme", "Default") |> render_click()
       assert_receive {:set_theme, :default}
 
       assert view |> element("#tree_storybook_component-playground-preview") |> render() =~
@@ -141,7 +149,7 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :source, theme: :default, variation_id: :hello}}"
+        ~p"/storybook/component?#{[tab: :source, theme: :default, variation_id: :hello]}"
       )
 
       assert html =~ "defmodule"
@@ -149,8 +157,8 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
     test "component variation with template", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/templates/template_component")
-      hello_element = element(view, "#hello .lsb-sandbox")
-      world_element = element(view, "#world .lsb-sandbox")
+      hello_element = element(view, "#hello .psb-sandbox")
+      world_element = element(view, "#world .psb-sandbox")
 
       assert render(hello_element) =~ "template_component: hello / status: false"
       assert render(world_element) =~ "template_component: world / status: false"
@@ -179,8 +187,8 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
     test "live_component variation with template", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/templates/template_live_component")
-      hello_element = element(view, "#hello .lsb-sandbox")
-      world_element = element(view, "#world .lsb-sandbox")
+      hello_element = element(view, "#hello .psb-sandbox")
+      world_element = element(view, "#world .psb-sandbox")
 
       assert render(hello_element) =~ "template_live_component: hello / status: false"
       assert render(world_element) =~ "template_live_component: world / status: false"
@@ -226,7 +234,7 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :playground, theme: :default, variation_id: :hello}}"
+        ~p"/storybook/component?#{[tab: :playground, theme: :default, variation_id: :hello]}"
       )
 
       assert view |> element("#playground-preview-live") |> render() =~ "component: hello"
@@ -237,7 +245,7 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
       assert_patched(
         view,
-        ~p"/storybook/component?#{%{tab: :playground, theme: :default, variation_id: :world}}"
+        ~p"/storybook/component?#{[tab: :playground, theme: :default, variation_id: :world]}"
       )
 
       assert view |> element("#playground-preview-live") |> render() =~ "component: world"
@@ -245,28 +253,93 @@ defmodule PhoenixStorybook.StoryLiveTest do
 
     test "sandbox container is default flex div", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/component")
-      html = view |> element("#hello .lsb-sandbox") |> render() |> Floki.parse_fragment!()
+      html = view |> element("#hello .psb-sandbox") |> render() |> Floki.parse_fragment!()
 
       assert [
                {"div",
                 [
                   {"class",
-                   "theme-prefix-default lsb-sandbox lsb-flex lsb-flex-col lsb-items-center lsb-gap-y-[5px]"}
+                   "theme-prefix-default psb-sandbox psb-flex psb-flex-col psb-items-center psb-gap-y-[5px] psb-p-[5px]"}
                 ], _}
              ] = html
     end
 
     test "sandbox container is customized div", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/a_folder/component")
-      html = view |> element("#group .lsb-sandbox") |> render() |> Floki.parse_fragment!()
+      html = view |> element("#group .psb-sandbox") |> render() |> Floki.parse_fragment!()
 
       assert [
                {"div",
                 [
-                  {"class", "theme-prefix-default lsb-sandbox block"},
+                  {"class", "theme-prefix-default psb-sandbox block"},
                   {"data-foo", "bar"}
                 ], _}
+               | _
              ] = html
+    end
+
+    test "function component container is a srcdoc iframe", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/storybook/containers/components/iframe")
+
+      [{"iframe", attrs, _}] =
+        view
+        |> element("#iframe-tree_storybook_containers_components_iframe-variation-hello")
+        |> render()
+        |> Floki.parse_fragment!(attributes_as_maps: true)
+
+      refute is_nil(attrs["srcdoc"])
+    end
+
+    test "function component container is a srcdoc iframe with custom opts", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/storybook/containers/components/iframe_with_opts")
+
+      [{"iframe", attrs, _}] =
+        view
+        |> element(
+          "#iframe-tree_storybook_containers_components_iframe_with_opts-variation-hello"
+        )
+        |> render()
+        |> Floki.parse_fragment!(attributes_as_maps: true)
+
+      refute is_nil(attrs["srcdoc"])
+      assert attrs["data-foo"] == "bar"
+    end
+
+    test "live component container is a regular iframe", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/storybook/containers/live_components/iframe")
+
+      [{"iframe", attrs, _}] =
+        view
+        |> element("#iframe-tree_storybook_containers_live_components_iframe-variation-hello")
+        |> render()
+        |> Floki.parse_fragment!(attributes_as_maps: true)
+
+      assert attrs["src"] ==
+               "/storybook/iframe/containers/live_components/iframe?theme=default&variation_id=hello"
+
+      assert is_nil(attrs["srcdoc"])
+    end
+
+    test "renders with different layouts", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/storybook/component")
+
+      component_html = view |> element("#hello-component") |> render() |> Floki.parse_fragment!()
+      [{"id", _id}, {"class", class}] = component_html |> Enum.at(0) |> elem(1)
+      assert class =~ "lg:psb-col-span-2"
+
+      code_html = view |> element("#hello-code") |> render() |> Floki.parse_fragment!()
+      [{"id", _id}, {"class", class}] = code_html |> Enum.at(0) |> elem(1)
+      assert class =~ "lg:psb-col-span-3"
+
+      {:ok, view, _html} = live(conn, "/storybook/live_component")
+
+      component_html = view |> element("#hello-component") |> render() |> Floki.parse_fragment!()
+      [{"id", _id}, {"class", class}] = component_html |> Enum.at(0) |> elem(1)
+      refute class =~ "lg:psb-col-span-2"
+
+      code_html = view |> element("#hello-code") |> render() |> Floki.parse_fragment!()
+      [{"id", _id}, {"class", class}] = code_html |> Enum.at(0) |> elem(1)
+      refute class =~ "lg:psb-col-span-3"
     end
   end
 
@@ -283,7 +356,7 @@ defmodule PhoenixStorybook.StoryLiveTest do
       assert html =~ "story-tabs"
 
       html = view |> element("a", "Tab 2") |> render_click()
-      assert_patched(view, ~p"/storybook/b_page?#{%{tab: :tab_2, theme: :default}}")
+      assert_patched(view, ~p"/storybook/b_page?#{[tab: :tab_2, theme: :default]}")
       assert html =~ "B Page: tab_2"
     end
   end
@@ -358,7 +431,7 @@ defmodule PhoenixStorybook.StoryLiveTest do
   describe "theme strategies" do
     test "theme is set on the sandbox with the default strategy", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/storybook/component")
-      html = view |> element("#hello .lsb-sandbox") |> render() |> Floki.parse_fragment!()
+      html = view |> element("#hello .psb-sandbox") |> render() |> Floki.parse_fragment!()
 
       assert [{"div", [{"class", classes}], _}] = html
       assert classes =~ "theme-prefix-default"

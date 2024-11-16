@@ -42,11 +42,17 @@ end
 
 If you need further _sandboxing_ you can opt in for `iframe` rendering.
 
+- For function components, storybook will use the iframe srcdoc attribute (the whole iframe content
+  is inlined as an HTML attribute).
+- For live components, storybook will use the typical iframe behavior, triggering an extra HTTP
+  request to fetch the iframe content.
+
 ```elixir
 # storybook/my_component.story.exs
 defmodule Storybook.MyComponent do
   use PhoenixStorybook.Story, :component
   def container, do: :iframe
+  # or def container, do: {:iframe, style: "display: inline; ..."}
 end
 ```
 
@@ -97,13 +103,13 @@ that will for instance render a button next to the component, to toggle its visi
 
 You can define a template in your component story by defining a `template/0` function.
 Every variation will be rendered within the defined template, the variation itself is injected
-in place of `<.lsb-variation/>`.
+in place of `<.psb-variation/>`.
 
 ```elixir
 def template do
   """
   <div class="my-custom-wrapper">
-    <.lsb-variation/>
+    <.psb-variation/>
   </div>
   """
 end
@@ -121,7 +127,7 @@ Variation groups can also leverage on templating:
 ```elixir
 """
 <div class="one-wrapper-for-each-variation">
-  <.lsb-variation/>
+  <.psb-variation/>
 </div>
 """
 ```
@@ -131,7 +137,7 @@ Variation groups can also leverage on templating:
 ```elixir
 """
 <div class="a-single-wrapper-for-all">
-  <.lsb-variation-group/>
+  <.psb-variation-group/>
 </div>
 """
 ```
@@ -142,12 +148,12 @@ by the current variation (or variation group) id.
 ### Placeholder attributes
 
 In template, you can pass some extra attributes to your variation. Just add them to the
-`.lsb-variation` or `.lsb-variation-group` placeholder.
+`.psb-variation` or `.psb-variation-group` placeholder.
 
 ```elixir
 """
 <.form_for :let={f} for={%{}} as={:user}>
-  <.lsb-variation form={f}/>
+  <.psb-variation form={f}/>
 </.form>
 """
 ```
@@ -167,7 +173,7 @@ defmodule Storybook.Components.Modal do
     """
     <div>
       <button phx-click={Modal.show_modal()}>Open modal</button>
-      <.lsb-variation/>
+      <.psb-variation/>
     </div>
     """
   end
@@ -188,7 +194,7 @@ end
 Some components don't rely on JS commands but need external assigns, like a modal that takes a
 `show={true}` or `show={false}` assign to manage its visibility state.
 
-`PhoenixStorybook` handles special `assign` and `toggle` events that you
+`PhoenixStorybook` handles special `psb-assign` and `psb-toggle` events that you
 can leverage on to update some properties that will be passed to your components as _extra assigns_.
 
 ```elixir
@@ -199,10 +205,10 @@ defmodule Storybook.Components.Slideover do
   def template do
     """
     <div>
-      <button phx-click={JS.push("assign", value: %{show: true})}>
+      <button phx-click={JS.push("psb-assign", value: %{show: true})}>
         Open slideover
       </button>
-      <.lsb-variation/>
+      <.psb-variation/>
     </div>
     """
   end
@@ -212,7 +218,7 @@ defmodule Storybook.Components.Slideover do
       %Variation{
         id: :default_slideover,
         attributes: %{
-          close_event: JS.push("assign", value: %{variation_id: :default_slideover, show: false})
+          close_event: JS.push("psb-assign", value: %{variation_id: :default_slideover, show: false})
         },
         slots: ["<:body>Hello world</:body>"]
       }
@@ -225,13 +231,13 @@ end
 
 By default, the code preview will render the variation and its template markup as well.
 You can choose to render only the variation markup, without its surrounding template by using the
-`lsb-code-hidden` HTML attribute.
+`psb-code-hidden` HTML attribute.
 
 ```elixir
 """
-<div lsb-code-hidden>
+<div psb-code-hidden>
   <button phx-click={Modal.show_modal()}>Open modal</button>
-  <.lsb-variation/>
+  <.psb-variation/>
 </div>
 """
 ```
@@ -323,4 +329,20 @@ Both open & close events would work, but code would be rendered like this.
   on-open="%Phoenix.LiveView.JS{ops: [["push", %{event: "open"}]]}"
   on-close={JS.push("close")}
 />
+```
+
+## Layout
+
+You can control how your story variations are rendered in the stories tab by defining an optional `layout/0` function in any of your `component` or `live_component` stories.
+
+By default a story will be rendered with the `:two_columns` layout. But you can use the alternate `:one_column` layout making the component preview taking the full container width.
+
+```elixir
+defmodule Storybook.Components.Breadcrumb do
+  use PhoenixStorybook.Story, :component
+
+  def layout, do: :one_column
+
+  # ...
+end
 ```

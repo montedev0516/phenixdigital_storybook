@@ -4,6 +4,7 @@ defmodule PhoenixStorybook.Story.ComponentIframeLive do
 
   alias Phoenix.PubSub
   alias PhoenixStorybook.ExtraAssignsHelpers
+  alias PhoenixStorybook.LayoutView
   alias PhoenixStorybook.Rendering.{ComponentRenderer, RenderingContext}
   alias PhoenixStorybook.Story.PlaygroundPreviewLive
   alias PhoenixStorybook.Stories.{Variation, VariationGroup}
@@ -74,13 +75,15 @@ defmodule PhoenixStorybook.Story.ComponentIframeLive do
     assigns =
       assign(
         assigns,
-        :context,
-        RenderingContext.build(
-          assigns.backend_module,
-          assigns.story,
-          assigns.variation,
-          variation_extra_attributes(assigns.variation, assigns)
-        )
+        context:
+          RenderingContext.build(
+            assigns.backend_module,
+            assigns.story,
+            assigns.variation,
+            variation_extra_attributes(assigns.variation, assigns)
+          ),
+        iframe_opts:
+          assigns.story.container() |> LayoutView.normalize_story_container() |> elem(1)
       )
 
     ~H"""
@@ -98,7 +101,7 @@ defmodule PhoenixStorybook.Story.ComponentIframeLive do
           container: {:div, style: "height: 100vh; width: 100wh;"}
         ) %>
       <% else %>
-        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; gap: 5px;">
+        <div {@iframe_opts}>
           <%= ComponentRenderer.render(@context) %>
         </div>
       <% end %>
@@ -149,7 +152,7 @@ defmodule PhoenixStorybook.Story.ComponentIframeLive do
     end
   end
 
-  def handle_event("assign", assign_params, socket = %{assigns: assigns}) do
+  def handle_event("psb-assign", assign_params, socket = %{assigns: assigns}) do
     {variation_id, extra_assigns} =
       ExtraAssignsHelpers.handle_set_variation_assign(
         assign_params,
@@ -160,7 +163,7 @@ defmodule PhoenixStorybook.Story.ComponentIframeLive do
     {:noreply, assign(socket, extra_assigns: %{variation_id => extra_assigns})}
   end
 
-  def handle_event("toggle", assign_params, socket = %{assigns: assigns}) do
+  def handle_event("psb-toggle", assign_params, socket = %{assigns: assigns}) do
     {variation_id, extra_assigns} =
       ExtraAssignsHelpers.handle_toggle_variation_assign(
         assign_params,

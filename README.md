@@ -2,15 +2,18 @@
 
 [![github](https://github.com/phenixdigital/phoenix_storybook/actions/workflows/elixir.yml/badge.svg)](https://github.com/phenixdigital/phoenix_storybook/actions/workflows/elixir.yml)
 [![codecov](https://codecov.io/gh/phenixdigital/phoenix_storybook/branch/main/graph/badge.svg)](https://codecov.io/gh/phenixdigital/phoenix_storybook)
-[![GitHub release](https://img.shields.io/github/v/release/phenixdigital/phoenix_storybook.svg)](https://github.com/phenixdigital/phoenix_storybook/releases/)
+[![GitHub release](https://img.shields.io/github/v/release/phenixdigital/phoenix_storybook.svg)](https://hex.pm/packages/phoenix_storybook)
+[![GitHub sponsors](https://img.shields.io/github/sponsors/cblavier)](https://github.com/sponsors/cblavier)
 
 📚 [Documentation](https://hexdocs.pm/phoenix_storybook)
 &nbsp; - &nbsp;
 🔎 [Demo](https://phoenix-storybook-demo.fly.dev/)
 &nbsp; - &nbsp;
-🎓 [Sample repository](https://github.com/phenixdigital/phoenix_storybook_sample)
+🎓 [Sample app](https://github.com/phenixdigital/phoenix_storybook_sample)
 &nbsp; - &nbsp;
 🍿 [Getting started video](https://www.youtube.com/watch?v=MTE7dLhkQ8Q)
+&nbsp; - &nbsp;
+🦊 [ElixirCasts](https://elixircasts.io/phoenix-storybook)
 
 <!-- MDOC !-->
 
@@ -53,15 +56,15 @@ Add the following to your mix.exs and run mix deps.get:
 ```elixir
 def deps do
   [
-    {:phoenix_storybook, "~> 0.5.0"}
+    {:phoenix_storybook, "~> 0.6.0"}
   ]
 end
 ```
 
-> **Note**
+> [!IMPORTANT]
+>
 > When picking a github version of the library (instead of an official hex.pm release) you
 > need the get the storybook's assets compiled.
->
 > To do so, please run `mix dev.storybook`.
 
 ### 2. Run the generator
@@ -118,8 +121,8 @@ defmodule MyAppWeb.Storybook do
     # The chosen theme key will be passed as an assign to all components.
     # ex: <.component theme={:colorful}/>
     #
-    # The chosen theme class will also be added to the `.lsb-sandbox` container.
-    # ex: <div class="lsb-sandbox theme-colorful">...</div>
+    # The chosen theme class will also be added to the `.psb-sandbox` container.
+    # ex: <div class="psb-sandbox theme-colorful">...</div>
     #
     # If no theme has been selected or if no theme is present in the URL the first one is enabled.
     themes: [
@@ -134,9 +137,12 @@ defmodule MyAppWeb.Storybook do
     # Story compilation mode, can be either `:eager` or `:lazy`.
     # It defaults to `:lazy` in dev environment, `:eager` in other environments.
     #   - When eager: all .story.exs & .index.exs files are compiled upfront.
-    #   - When lazy: ony .index.exs files are compiled upfront and .story.exs are compile when the
+    #   - When lazy: only .index.exs files are compiled upfront and .story.exs are compile when the
     #     matching story is loaded in UI.
-    compilation_mode: :eager
+    compilation_mode: :eager,
+    
+    # If you want to see debugging logs for storybooks compilation, set this to `true`. Default: `false`
+    compilation_debug: true
   ]
 ```
 
